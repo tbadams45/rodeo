@@ -1,1 +1,1 @@
-python3 baseline.py "$1" > "$2"
+python3.7 forecast.py "$1" "$2"

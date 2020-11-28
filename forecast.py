@@ -2,6 +2,7 @@
 import os
 import pandas as pd
 import re
+import sys
 from datetime import datetime
 
 
@@ -36,6 +37,7 @@ def forecast_daily_means(station_id, target_date, args_dict):
 
     daily_means = read_usgs_daily_means_csv(args_dict["file_path"])
     station_means = daily_means.loc[daily_means["site_no"] == station_id]
+    station_means = station_means.astype({"mean_va": int})
 
     if len(station_means.index) == 0:
         raise ValueError(f"station_id {station_id} doesn't exist in your daily means csv")
@@ -95,7 +97,7 @@ def forecast(station_id, target_date, forecast_func, forecast_args):
     forecast_time = target_date.replace(hour = 0)
     forecast_df["ForecastTime"] = forecast_time.strftime("%Y-%m-%dT%H")
     forecast_df["VendorID"] = "TC+tbadams45"
-    forecast_df["Value"] = int(forecast_df["value"])
+    forecast_df["Value"] = forecast_df["value"]
     forecast_df["Units"] = "CFS"
 
     
@@ -132,3 +134,14 @@ def forecast_all_test_stations(target_date, forecast_func, forecast_args):
 def write_forecast_file(forecast, file_path):
     forecast.to_csv(path_or_buf = file_path, index = False)
 # %%
+
+def main(argv):
+    year  = argv[0][0:4]
+    month = argv[0][5:7]
+    day   = argv[0][8:]
+    target_date = datetime(int(year),int(month), int(day))
+    forecast_df = forecast_all_test_stations(target_date, forecast_daily_means, {"file_path": "./daily_means.csv"})
+    write_forecast_file(forecast_df, argv[1])
+
+if __name__ == '__main__':
+    main(sys.argv[1:])
